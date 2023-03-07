@@ -22,9 +22,11 @@ def load_data():
 
     df_mmap = pd.read_csv('merged_maternal_morbidity.csv')
 
-    return df_natality, df_mmap
+    df_bw_clean = pd.read_csv('df_bw_plot.csv')
 
-df_nat, df_map = load_data()
+    return df_natality, df_mmap, df_bw_clean
+
+df_nat, df_map, df_bw = load_data()
 ### READ IN DATA ###
 
 ### DATA AND PLOT FIONA ###
@@ -248,40 +250,15 @@ def get_rate(df):
     return rates
 # helper function #
 
-# data risk averaging #
-df_bw_risk = df_nat[['mager', 'mar_p', 'dmar',
-                     'meduc', 'feduc', 'cig_0', 'dbwt']]
-
-df_bw_risk_clean = df_bw_risk[df_bw_risk['mar_p'] != 'U']
-
-df_bw_risk_clean.loc[:,'mage_cat'] = np.where(df_bw_risk_clean['mager'] < 17, '<20',
-                               np.where(df_bw_risk_clean['mager'] < 26, '20-25',
-                               np.where(df_bw_risk_clean['mager'] < 31, '26-30',
-                               np.where(df_bw_risk_clean['mager'] < 36, '31-35',
-                               np.where(df_bw_risk_clean['mager'] < 41, '36-40',
-                               np.where(df_bw_risk_clean['mager'] < 46, '41-45', '46-50'))))))
-
-df_bw_risk_clean.loc[:,'cig_cat'] = np.where(df_bw_risk_clean['cig_0'] < 1, 'none', 
-                                    np.where(df_bw_risk_clean['cig_0'] < 5, '<5',
-                                    np.where(df_bw_risk_clean['cig_0'] < 11, '5-10',
-                                    np.where(df_bw_risk_clean['cig_0'] < 21, '11-20',
-                                    np.where(df_bw_risk_clean['cig_0'] < 41, '21-40', '41+')))))
-
-df_bw_risk_clean1 = df_bw_risk_clean.drop(columns = ['mager', 'cig_0'])
-
-df_bw1 = df_bw_risk_clean1.groupby(['mage_cat', 'mar_p', 'dmar', 'meduc', 'feduc', 'cig_cat'], 
-                                     group_keys=False).mean().apply(lambda x: x).reset_index()
-# data risk averaging #
-
 # selector thingies #
-age_group = df_bw1['mage_cat'].unique()
-pat_ack = df_bw1['mar_p'].unique()
-mar_status = df_bw1['dmar'].unique()
-mom_educ = df_bw1['meduc'].unique()
+age_group = df_bw['mage_cat'].unique()
+pat_ack = df_bw['mar_p'].unique()
+mar_status = df_bw['dmar'].unique()
+mom_educ = df_bw['meduc'].unique()
 #['< 8th grade', '9-12th grade', 'High school graduate/GED',
 #'Some college', 'Associate', "Bachelor's", "Master's", 'Doctorate/Profession', 'Unknown']
-dad_educ = df_bw1['feduc'].unique()
-cigs = df_bw1['cig_cat'].unique()
+dad_educ = df_bw['feduc'].unique()
+cigs = df_bw['cig_cat'].unique()
 # selector thingies #
 
 # maternal morbidity risk #
@@ -369,12 +346,12 @@ df_fml3 = df_fml2[df_fml2['yn'] == 1]
 
 
 ### SUBSET - RISK AVERAGING ###
-df_subset3 = df_bw1[(df_bw1['mage_cat'].isin(age_risk)) &
-                (df_bw1['mar_p'].isin(pat_risk)) &
-                (df_bw1['dmar'].isin(mar_risk)) &
-                (df_bw1['meduc'].isin(meduc_risk)) &
-                (df_bw1['feduc'].isin(feduc_risk)) &
-                (df_bw1['cig_cat'].isin(cig_risk))].reset_index()
+df_subset3 = df_bw[(df_bw['mage_cat'].isin(age_risk)) &
+                (df_bw['mar_p'].isin(pat_risk)) &
+                (df_bw['dmar'].isin(mar_risk)) &
+                (df_bw['meduc'].isin(meduc_risk)) &
+                (df_bw['feduc'].isin(feduc_risk)) &
+                (df_bw['cig_cat'].isin(cig_risk))].reset_index()
 ### SUBSET - RISK AVERAGING ###
 
 
