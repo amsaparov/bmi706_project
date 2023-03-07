@@ -2,6 +2,7 @@ import altair as alt
 import pandas as pd
 import numpy as np
 import streamlit as st
+from vega_datasets import data
 
 #not mine
 # SETTING PAGE CONFIG TO WIDE MODE AND ADDING A TITLE AND FAVICON
@@ -19,10 +20,120 @@ def load_data():
 
     df_natality = pd.concat([df1, df2, df3, df4, df5])
 
-    return df_natality
+    df_mmap = pd.read_csv('merged_maternal_morbidity.csv')
 
-df_nat = load_data()
+    return df_natality, df_mmap
+
+df_nat, df_map = load_data()
 ### READ IN DATA ###
+
+### DATA AND PLOT FIONA ###
+# rename columns of interest with long names
+mm_county = df_map.rename(columns={"Average Age of Mother (years)_MM": "Avg_Age_MM", "% of Total Births_MM": "percent_MM"})
+
+# reformat state and county code to match the vega dataset county ids
+state_code = []
+county_code = []
+for i in range(len(mm_county)):
+    if len(str(mm_county["County of Residence Code"][i])) == 6:
+        state_code.append(str(mm_county["County of Residence Code"][i])[:1])
+        county_code.append(str(mm_county["County of Residence Code"][i])[1:4])
+    if len(str(mm_county["County of Residence Code"][i])) == 7:
+        state_code.append(str(mm_county["County of Residence Code"][i])[:2])
+        county_code.append(str(mm_county["County of Residence Code"][i])[2:5])
+        
+mm_id = []
+for i in range(len(mm_county)):
+    mm_id.append(int(state_code[i] + county_code[i]))
+
+# change the percentage column from a string to floats
+new_percent = []
+for i in range(len(mm_county)):
+    percent = mm_county["percent_MM"][i]
+    new_percent.append(float(percent[:-1]))
+    
+# change county id and percent columns to the newly formatted columns from above
+mm_county["county-id"] = mm_id
+mm_county["percent_MM"] = new_percent
+
+### BACKGROUND PLOT ###
+# import state data
+states = alt.topo_feature(data.us_10m.url, 'states')
+
+# set common features
+width = 900
+height  = 600
+project = 'albersUsa'
+
+# create the background plot
+background = alt.Chart(states
+).mark_geoshape(
+    fill='lightgrey',
+    stroke='white'
+).properties(
+    width=width,
+    height=height
+).project(
+    project
+)
+
+### BASE PLOT ###
+# import county data
+counties = alt.topo_feature(data.us_10m.url, 'counties')
+
+# create a selector to link graphs
+selector = alt.selection_single(fields = ['County of Residence'])
+
+# create the base plot
+chart_base = alt.Chart(counties
+).properties( 
+    width=width,
+    height=height
+).project(
+    project
+).add_selection(
+    selector
+).transform_lookup(
+    lookup="id",
+    from_=alt.LookupData(mm_county, "county-id", ['Avg_Age_MM', 'percent_MM', 'County of Residence']))
+
+### AGE PLOT ###
+# create the color scale for age
+age_scale = alt.Scale(domain=[mm_county["Avg_Age_MM"].min(), mm_county["Avg_Age_MM"].max()], scheme='blueorange')
+
+# create the age plot 
+chart_age = chart_base.mark_geoshape(stroke='black').encode(
+    color = alt.Color("Avg_Age_MM:Q", scale = age_scale, title = "Age(y)"),
+     tooltip=[alt.Tooltip('County of Residence:N', title = "County"), alt.Tooltip('Avg_Age_MM:Q', title = "Age of Mothers with Mordibity")]
+).transform_filter(
+    selector
+).properties(
+    title= "Average Age of Mothers with Maternal Morbidities"
+)
+
+### PERCENT PLOT ###
+# create the color scale for percentages
+percent_scale = alt.Scale(domain=[mm_county["percent_MM"].min(), mm_county["percent_MM"].max()], scheme='oranges')
+
+# create the percentage plot
+chart_percent = chart_base.mark_geoshape(stroke='black').encode(
+    color = alt.Color('percent_MM:Q', scale = percent_scale, title = "Percent Morbidity"),
+    tooltip=[alt.Tooltip('County of Residence:N', title = "County"), alt.Tooltip('percent_MM:Q', title = "Percent Morbidity")]
+).transform_filter(
+    selector
+).properties(
+    title= "Percent of Births Resulting in Maternal Mordibity"
+)
+
+### COMBINED PLOT ###
+# combine plots 
+mm_chart = alt.hconcat(background + chart_age, background + chart_percent
+).resolve_scale(
+    color='independent'
+).properties(
+    title= "Maternal Morbidity Trends in the United State"
+)
+### DATA AND PLOT FIONA ###
 
 
 ### DATA ISABEL ###
@@ -230,6 +341,11 @@ with row3_1:
     st.title('chart 3_1')
 with row3_2: 
     st.title('chart 3_2')
+
+st.write('## Title 4')
+row4_1, row4_2 = st.columns(2)
+with row4_1:
+    st.title('chart 4')
 ### STREAMLIT THINGIES ###
 
 
@@ -259,7 +375,6 @@ df_subset3 = df_bw1[(df_bw1['mage_cat'].isin(age_risk)) &
                 (df_bw1['meduc'].isin(meduc_risk)) &
                 (df_bw1['feduc'].isin(feduc_risk)) &
                 (df_bw1['cig_cat'].isin(cig_risk))].reset_index()
-st.dataframe(df_subset3)
 ### SUBSET - RISK AVERAGING ###
 
 
@@ -318,6 +433,9 @@ with row3_1:
 
 with row3_2:
     st.altair_chart(line2)
+
+with row4_1:
+    st.altair_chart(mm_chart)
 ### STREAMLIT THINGIES ###
 
 
