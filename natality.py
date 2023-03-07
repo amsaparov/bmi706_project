@@ -261,11 +261,11 @@ df_bw_risk_clean.loc[:,'mage_cat'] = np.where(df_bw_risk_clean['mager'] < 17, '<
                                np.where(df_bw_risk_clean['mager'] < 41, '36-40',
                                np.where(df_bw_risk_clean['mager'] < 46, '41-45', '46-50'))))))
 
-df_bw_risk_clean.loc[:,'cig_cat'] = np.where(df_bw_risk_clean['cig_0'] == 0, 'none',
-                                np.where(df_bw_risk_clean['cig_0'] < 5, '<5',
-                                np.where(df_bw_risk_clean['cig_0'] < 11, '5-10',
-                                np.where(df_bw_risk_clean['cig_0'] < 21, '11-20',
-                                np.where(df_bw_risk_clean['cig_0'] < 41, '21-40', '41+')))))
+df_bw_risk_clean.loc[:,'cig_cat'] = np.where(df_bw_risk_clean['cig_0'] < 1, 'none', 
+                                    np.where(df_bw_risk_clean['cig_0'] < 5, '<5',
+                                    np.where(df_bw_risk_clean['cig_0'] < 11, '5-10',
+                                    np.where(df_bw_risk_clean['cig_0'] < 21, '11-20',
+                                    np.where(df_bw_risk_clean['cig_0'] < 41, '21-40', '41+')))))
 
 df_bw_risk_clean1 = df_bw_risk_clean.drop(columns = ['mager', 'cig_0'])
 
