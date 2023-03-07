@@ -12,11 +12,11 @@ st.set_page_config(layout = 'wide', page_title = 'CDC Natality 2021', page_icon 
 ### READ IN DATA ###
 @st.cache_data
 def load_data():
-    df1 = pd.read_csv('2021natality_clean1.csv')
-    df2 = pd.read_csv('2021natality_clean2.csv')
-    df3 = pd.read_csv('2021natality_clean3.csv')
-    df4 = pd.read_csv('2021natality_clean4.csv')
-    df5 = pd.read_csv('2021natality_clean5.csv')
+    df1 = pd.read_csv('2021natality_clean1.csv', low_memory=False)
+    df2 = pd.read_csv('2021natality_clean2.csv', low_memory=False)
+    df3 = pd.read_csv('2021natality_clean3.csv', low_memory=False)
+    df4 = pd.read_csv('2021natality_clean4.csv', low_memory=False)
+    df5 = pd.read_csv('2021natality_clean5.csv', low_memory=False)
 
     df_natality = pd.concat([df1, df2, df3, df4, df5])
     df_mmap = pd.read_csv('merged_maternal_morbidity.csv')
@@ -239,34 +239,6 @@ line2 = line.configure_axisBottom(
 
 
 ### DATA ALICE###
-# maternal morbidity risk #
-df_natality_clean = df_nat[df_nat['no_mmorb'] == 0]
-
-df_natality_clean1 = df_natality_clean[['no_infec', 'rf_gdiab', 'rf_ghype', 'mm_mtr', 
-                                        'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu']]
-
-for i in ['mm_mtr', 'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu', 'rf_gdiab', 'rf_ghype']:
-    df_natality_clean1[i] = df_natality_clean1[i] == 'Y'
-
-df_natality_clean2 = pd.melt(
-     df_natality_clean1, id_vars = ['no_infec', 'rf_gdiab', 'rf_ghype'], 
-     var_name = 'outcome', value_name = 'yn')
-
-df_natality_clean2['yn'] = df_natality_clean2['yn'].astype(int)
-
-df_fml1 = df_natality_clean2.groupby(['no_infec', 'rf_gdiab', 'rf_ghype', 'outcome'], 
-    group_keys = False).sum().apply(lambda x: x).reset_index()
-
-df_fml4 = pd.melt(
-     df_natality_clean1, id_vars = ['mm_mtr', 'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu'], 
-     var_name = 'risk_factor', value_name = 'yn'
-)
-df_fml4['yn'] = df_fml4['yn'].astype(int)
-df_fml5 = df_fml4.groupby('risk_factor').sum().reset_index()
-
-st.dataframe(df_natality_clean2)
-st.dataframe(df_rates)
-# maternal morbidity risk #
 # helper function #
 def get_rate(df):
     rates = []
