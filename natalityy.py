@@ -4,10 +4,7 @@ import numpy as np
 import streamlit as st
 from vega_datasets import data
 
-#not mine
-# SETTING PAGE CONFIG TO WIDE MODE AND ADDING A TITLE AND FAVICON
 st.set_page_config(layout = 'wide', page_title = 'CDC Natality 2021', page_icon = ':baby:')
-
 
 ### READ IN DATA ###
 @st.cache_data
@@ -24,14 +21,15 @@ def load_data():
 bw_risk_alice, mm_county_fiona, morb_group_isabel, morb_group2_isabel, rate_risk_alice, sum_risk_alice = load_data()
 ### READ IN DATA ###
 
+
 ### PLOT FIONA ###
 ### BACKGROUND PLOT ###
 # import state data
 states = alt.topo_feature(data.us_10m.url, 'states')
 
 # set common features
-width = 900
-height  = 600
+width = 575 #900
+height  = 450
 project = 'albersUsa'
 
 # create the background plot
@@ -43,8 +41,7 @@ background = alt.Chart(states
     width=width,
     height=height
 ).project(
-    project
-)
+    project)
 
 ### BASE PLOT ###
 # import county data
@@ -75,10 +72,7 @@ chart_age = chart_base.mark_geoshape(stroke='black').encode(
     color = alt.Color("Avg_Age_MM:Q", scale = age_scale, title = "Age(y)"),
      tooltip=[alt.Tooltip('County of Residence:N', title = "County"), alt.Tooltip('Avg_Age_MM:Q', title = "Age of Mothers with Mordibity")]
 ).transform_filter(
-    selector
-).properties(
-    title= "Average Age of Mothers with Maternal Morbidities"
-)
+    selector)
 
 ### PERCENT PLOT ###
 # create the color scale for percentages
@@ -89,19 +83,13 @@ chart_percent = chart_base.mark_geoshape(stroke='black').encode(
     color = alt.Color('percent_MM:Q', scale = percent_scale, title = "Percent Morbidity"),
     tooltip=[alt.Tooltip('County of Residence:N', title = "County"), alt.Tooltip('percent_MM:Q', title = "Percent Morbidity")]
 ).transform_filter(
-    selector
-).properties(
-    title= "Percent of Births Resulting in Maternal Mordibity"
-)
+    selector)
 
 ### COMBINED PLOT ###
 # combine plots 
 mm_chart = alt.hconcat(background + chart_age, background + chart_percent
 ).resolve_scale(
-    color='independent'
-).properties(
-    title= "Maternal Morbidity Trends in the United State"
-)
+    color='independent')
 ### PLOT FIONA ###
 
 
@@ -113,19 +101,22 @@ plot = alt.Chart(morb_group_isabel).mark_bar().encode(
                                                    'October', 'November', 'December']),
     y = alt.Y('dob_tt:Q', title = 'Birth Count'),
     color = alt.Color('no_mmorb:N', title = 'Maternal Morbidity', scale=alt.Scale(
-        range=[' #0F52BA', '#87CEEB'])),
+        range=[' #0F52BA', '#87CEEB']), legend = alt.Legend(
+        orient = 'top',
+        direction = 'horizontal',
+        labelFontSize = 15,
+        titleFontSize = 17)),
     tooltip = [alt.Tooltip('dob_tt:Q', title ='Count')]
 ).properties(
-    title= 'USA Maternal Morbidity in 2021',
-    width = 600,
-    height = 300
-)
+    width = 400,
+    height = 500).configure_axis(
+    titleFontSize = 20,
+    labelFontSize = 15)
 
 # angle the x-axis labels and include full label
 plot2 = plot.configure_axisBottom(
-    labelAngle = 45,
-    labelLimit = 0
-)
+    labelAngle = 270,
+    labelLimit = 0)
 
 # create selector for outcome, add to dropdown
 outcome = morb_group2_isabel['no_mmorb'].unique()
@@ -143,27 +134,27 @@ line = alt.Chart(morb_group2_isabel).mark_line(point=True).encode(
                          '16:01-17:00', '17:01-18:00', '18:01-19:00', '19:01-20:00', '20:01-21:00',
                          '21:01-22:00', '22:01-23:00', '23:01-24:00']),
   y = alt.Y('dob_tt:Q', title = 'Births'),
-  color = alt.Color('dob_mm:N', title = 'Month',
+  color = alt.Color('dob_mm:N', title = 'Month', legend = alt.Legend(titleFontSize = 17),
                     sort = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
                            'September', 'October', 'November', 'December']),
-  opacity=alt.condition(month_selection, alt.value(1), alt.value(0.2)), # add opacity
+  opacity=alt.condition(month_selection, alt.value(1), alt.value(0.1)), # add opacity
   tooltip = [alt.Tooltip('dob_tt:Q', title ='Count')]
-).properties( 
-    title = 'Births per hour in 2021',
-    width = 600
+).properties(
+    width = 800,
+    height = 500
 ).add_selection(
     outcome_select
 ).transform_filter(
     outcome_select
 ).add_selection(
-month_selection
-)
+month_selection).configure_axis(
+    titleFontSize = 20,
+    labelFontSize = 15)
 
 # angle the x-axis labels and include full label
 line2 = line.configure_axisBottom(
     labelAngle = 45,
-    labelLimit = 0
-)
+    labelLimit = 0)
 ### PLOTTING ISABEL ###
 
 
@@ -189,19 +180,56 @@ cigs = bw_risk_alice['cig_cat'].unique()
 # selector thingies #
 ### DATA ALICE ###
 
-### STREAMLIT THINGIES ###
-st.write('## Title 1')
-row1_1, row1_2 = st.columns(2)
-with row1_1:
-    st.title('chart 1_1')
-with row1_2: 
-    st.title('chart 1_2')
-    selected_risk = st.radio('Select Risk', ('No Infection','Gestational Diabetes','Gestational Hypertension'), index = 1)
 
-st.write('## Title 2')
-row2_1, row2_2 = st.columns([1,3])
+### STREAMLIT THINGIES ###
+## header ##
+st.write('# 2021 CDC Natality - Maternal Morbidity and Birth Risks')
+st.write('These visualizations use the 2021 Natality Public Use dataset from the Centers \
+         for Disease Control and Prevention. This dataset contains information related to \
+         all documented births in the United States of America for the year 2021.')
+## header ##
+
+## maps ##
+st.write('## Maternal Morbidity Trends in the United States')
+st.write('short text description')
+row4_1, row4_2 = st.columns(2)
+with row4_1:
+    st.write('### Average Age of Mothers with Maternal Morbidities')
+with row4_2: 
+    st.write('### Percent of Births Resulting in Maternal Mordibity')
+st.altair_chart(mm_chart)
+## maps ##
+
+## temporal ##
+st.write('## Overview of Births and Maternal Morbidity in 2021')
+st.write('short text description')
+row3_1, row3_2 = st.columns([1,2])
+with row3_1:
+    st.write('### USA Maternal Morbidity in 2021')
+with row3_2: 
+    st.write('### Births per hour in 2021')
+## temporal ##
+
+## risk factors ##
+st.write('## Maternal Morbidity Risk Factors')
+st.write('short text description')
+row1_1, row1_2 = st.columns([1,1.8])
+with row1_1:
+    st.write('### Count of Maternal Morbidity')
+with row1_2: 
+    st.write('### Outcome Rates for Selected Risk Factor')
+    selected_risk = st.radio('Select Risk', 
+                             ('No Infection','Gestational Diabetes','Gestational Hypertension'), 
+                             index = 1,
+                             horizontal = True)
+## risk factors ##
+
+## birthweight ##
+st.write('## Risk Factor Effects on Birthweight')
+st.write('short text description')
+row2_1, row2_2 = st.columns([1,2.5])
 with row2_1:
-    st.title('chart 2_1')
+    st.write('### Select Risk Factors')
     #selectors
     age_risk = st.multiselect('Mother Age Group', age_group, ['20-25'])
     pat_risk = st.multiselect('Paternity Acknowledged', pat_ack, ['Y', 'N'])
@@ -209,57 +237,50 @@ with row2_1:
     meduc_risk = st.multiselect('Mother Education', mom_educ, ['Associate', "Bachelor's"])
     feduc_risk = st.multiselect('Father Education', dad_educ, ['Some college', 'Associate'])
     cig_risk = st.multiselect('Number of Cigarettes (daily before pregnancy)', cigs, ['none'])
-
 with row2_2: 
-    st.title('chart 2_2')
-    
-st.write('## Title 3')
-row3_1, row3_2 = st.columns(2)
-with row3_1:
-    st.title('chart 3_1')
-with row3_2: 
-    st.title('chart 3_2')
-
-st.write('## Title 4')
-row4_1, row4_2 = st.columns(2)
-with row4_1:
-    st.title('chart 4')
+    st.write('### Mean Birthweight for Selected Risk Factors')
+## birthweight ##
 ### STREAMLIT THINGIES ###
 
-
-### PLOT - RISK SUM ###
-chart0 = alt.Chart(sum_risk_alice).mark_bar().encode(
+### PLOTTING ALICE ###
+## PLOT - RISK SUM ##
+chart0 = alt.Chart(sum_risk_alice).mark_bar(color = '#71797E').encode(
     x = alt.X('Risk Factor', sort = 'y'), 
     y = alt.Y('Count'),
-    tooltip = 'Count',
-    color = 'Risk Factor'
-)
-### PLOT - RISK SUM ###
+    tooltip = 'Count').properties(
+    width = 360,
+    height = 650).configure_axisBottom(
+    labelAngle = 305,
+    labelLimit = 0, 
+    labelFontSize = 12).configure_axis(
+    titleFontSize = 17).configure_axisY(
+    labelFontSize = 15)
+## PLOT - RISK SUM ##
 
-
-### SUBSET - MMORB RISK ###
+## SUBSET - MMORB RISK ##
+rate_risk_alice = rate_risk_alice[rate_risk_alice['No Infection'] != 9]
+rate_risk_alice['No Infection'] = rate_risk_alice['No Infection'].map({0: 'Infection', 1: 'No Infection'})
+rate_risk_alice['Gestational Diabetes'] = rate_risk_alice['Gestational Diabetes'].map({False: 'No Gest. Diabetes', True: 'Gest. Diabetes'})
+rate_risk_alice['Gestational Hypertension'] = rate_risk_alice['Gestational Hypertension'].map({False: 'No Gest. Hypertension', True: 'Gest. Hypertension'})
 df_fml2 = rate_risk_alice.groupby([selected_risk, 'Outcome', 'yn'], 
     group_keys=False).count().apply(lambda x: x).reset_index()
-
 df_fml2['Rate'] = get_rate(df_fml2)
 df_fml3 = df_fml2[df_fml2['yn'] == 1]
-### SUBSET - MMORB RISK  ###
+## SUBSET - MMORB RISK  ##
 
-
-### SUBSET - RISK AVERAGING ###
+## SUBSET - RISK AVERAGING ##
 df_subset3 = bw_risk_alice[(bw_risk_alice['mage_cat'].isin(age_risk)) &
                 (bw_risk_alice['mar_p'].isin(pat_risk)) &
                 (bw_risk_alice['dmar'].isin(mar_risk)) &
                 (bw_risk_alice['meduc'].isin(meduc_risk)) &
                 (bw_risk_alice['feduc'].isin(feduc_risk)) &
                 (bw_risk_alice['cig_cat'].isin(cig_risk))].reset_index()
-### SUBSET - RISK AVERAGING ###
+## SUBSET - RISK AVERAGING ##
 
-
-### PLOT - RISK AVERAGING ###
+## PLOT - RISK AVERAGING ##
 points = alt.Chart().mark_point().encode(
-    x = alt.X('index:O'),
-    y = alt.Y('dbwt:Q', scale = alt.Scale(domain = [300, 6700])),
+    x = alt.X('index:O', axis = None),
+    y = alt.Y('dbwt:Q', scale = alt.Scale(domain = [2000, 4500], clamp = True), title = 'Birthweight (g)'),
     tooltip = [alt.Tooltip('mage_cat', title = 'Mother Age'),
                alt.Tooltip('mar_p', title = 'Paternity Acknowledged'), 
                alt.Tooltip('dmar', title = 'Martial Status'), 
@@ -267,65 +288,66 @@ points = alt.Chart().mark_point().encode(
                alt.Tooltip('feduc', title = 'Father Education'), 
                alt.Tooltip('cig_cat', title = 'Number of Cigarettes'), 
                alt.Tooltip('dbwt:Q', title = 'Birthweight (g)')]
-)
-
-line_min = alt.Chart(pd.DataFrame({'y': [2500]})).mark_rule(color = 'black').encode(
-    y = 'y', size = alt.SizeValue(3))
-line_max = alt.Chart(pd.DataFrame({'y': [4000]})).mark_rule(color = 'black').encode(
-    y = 'y', size = alt.SizeValue(3))
-
+).properties(
+    width = 800,
+    height = 600)
+line_min = alt.Chart(pd.DataFrame({'Lower birthweight': [2500]})).mark_rule(color = 'black').encode(
+    y = 'Lower birthweight', size = alt.SizeValue(3))
+line_max = alt.Chart(pd.DataFrame({'Upper birthweight': [4000]})).mark_rule(color = 'black').encode(
+    y = 'Upper birthweight', size = alt.SizeValue(3))
 line_risk = alt.Chart().mark_rule(color = 'firebrick').encode(
     y = 'mean(dbwt):Q',
     size = alt.SizeValue(3),
-    tooltip = 'mean(dbwt):Q'
-)
+    tooltip = [alt.Tooltip('mean(dbwt):Q', title = 'Mean Birthweight')])
+chart3 = alt.layer(points, line_min, line_max, line_risk, data = df_subset3).configure_axis(
+    titleFontSize = 20,
+    labelFontSize = 15).interactive()
+## PLOT - RISK AVERAGING ##
 
-chart3 = alt.layer(points, line_min, line_max, line_risk, data = df_subset3)
-### PLOT - RISK AVERAGING ###
+## PLOT - MMORB RISK  ##
+outcome_selection = alt.selection_single(fields = ['Outcome'], bind = 'legend')
 
-
-### PLOT - MMORB RISK  ###
 chart2 = alt.Chart(df_fml3).mark_bar().encode(
-    x = alt.X('Outcome', sort = 'y'), 
+    x = alt.X('Outcome', sort = 'y', axis = alt.Axis(title = 'Outcome')), 
     y = alt.Y('Rate'),
-    column = selected_risk, #risk_factor = no_infec
+    column = selected_risk, 
     tooltip = 'Rate',
-    color = 'Outcome'
-)
-### PLOT - MMORB RISK  ###
+    color = alt.Color('Outcome', legend = alt.Legend(
+        orient = 'top',
+        direction = 'horizontal',
+        columns = 3,
+        fillColor = 'White',
+        labelFontSize = 15,
+        titleFontSize = 20), scale = alt.Scale(scheme = 'category10')), 
+    opacity = alt.condition(outcome_selection, alt.value(1), alt.value(0.1))).properties(
+    width = 350,
+    height = 350).configure_axisBottom(
+    labelAngle = 305,
+    labelLimit = 100,
+    labelFontSize = 0).configure_header(
+    titleFontSize = 20,
+    labelFontSize = 15).configure_axis(
+    titleFontSize = 17).configure_axisY(
+    labelFontSize = 15).add_selection(
+    outcome_selection)
+## PLOT - MMORB RISK  ##
+### PLOTTING ALICE ###
 
 
 ### STREAMLIT THINGIES ###
 with row1_1:
-    st.altair_chart(chart0, use_container_width=False)
-    #st.altair_chart(chart1, use_container_width=False)
+    st.altair_chart(chart0)
 
 with row1_2: 
-    st.altair_chart(chart2, use_container_width=False)
+    st.altair_chart(chart2)
 
 with row2_2:
-    st.altair_chart(chart3, use_container_width=False)
+    st.altair_chart(chart3)
 
 with row3_1:
     st.altair_chart(plot2)
 
 with row3_2:
     st.altair_chart(line2)
-
-with row4_1:
-    st.altair_chart(mm_chart)
 ### STREAMLIT THINGIES ###
 
-
-
-
-
-
-
-#countries_in_subset = subset["Country"].unique()
-#if len(countries_in_subset) != len(countries):
- #   if len(countries_in_subset) == 0:
-  #      st.write("No data avaiable for given subset.")
-   # else:
-    #    missing = set(countries) - set(countries_in_subset)
-     #   st.write("No data available for " + ", ".join(missing) + ".")
