@@ -316,7 +316,6 @@ chart2 = alt.Chart(df_fml3).mark_bar().encode(
         orient = 'top',
         direction = 'horizontal',
         columns = 3,
-        fillColor = 'White',
         labelFontSize = 15,
         titleFontSize = 20), scale = alt.Scale(scheme = 'category10')), 
     opacity = alt.condition(outcome_selection, alt.value(1), alt.value(0.1))).properties(
