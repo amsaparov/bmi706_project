@@ -22,7 +22,7 @@ def load_data():
     df_mmap = pd.read_csv('merged_maternal_morbidity.csv')
     df_bw_clean = pd.read_csv('df_bw_plot.csv')
     df_sums_clean = pd.read_csv('df_sums.csv')
-    df_rates_clean = pd.read_csv('df_rates.csv')
+    df_rates_clean = pd.read_csv('df_for_rates.csv')
 
     return df_natality, df_mmap, df_bw_clean, df_sums_clean, df_rates_clean
 
@@ -239,6 +239,34 @@ line2 = line.configure_axisBottom(
 
 
 ### DATA ALICE###
+# maternal morbidity risk #
+df_natality_clean = df_nat[df_nat['no_mmorb'] == 0]
+
+df_natality_clean1 = df_natality_clean[['no_infec', 'rf_gdiab', 'rf_ghype', 'mm_mtr', 
+                                        'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu']]
+
+for i in ['mm_mtr', 'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu', 'rf_gdiab', 'rf_ghype']:
+    df_natality_clean1[i] = df_natality_clean1[i] == 'Y'
+
+df_natality_clean2 = pd.melt(
+     df_natality_clean1, id_vars = ['no_infec', 'rf_gdiab', 'rf_ghype'], 
+     var_name = 'outcome', value_name = 'yn')
+
+df_natality_clean2['yn'] = df_natality_clean2['yn'].astype(int)
+
+df_fml1 = df_natality_clean2.groupby(['no_infec', 'rf_gdiab', 'rf_ghype', 'outcome'], 
+    group_keys = False).sum().apply(lambda x: x).reset_index()
+
+df_fml4 = pd.melt(
+     df_natality_clean1, id_vars = ['mm_mtr', 'mm_plac', 'mm_rupt', 'mm_uhyst', 'mm_aicu'], 
+     var_name = 'risk_factor', value_name = 'yn'
+)
+df_fml4['yn'] = df_fml4['yn'].astype(int)
+df_fml5 = df_fml4.groupby('risk_factor').sum().reset_index()
+
+st.dataframe(df_natality_clean2)
+st.dataframe(df_rates)
+# maternal morbidity risk #
 # helper function #
 def get_rate(df):
     rates = []
@@ -301,7 +329,7 @@ with row4_1:
 
 
 ### PLOT - RISK SUM ###
-chart0 = alt.Chart(df_rates).mark_bar().encode(
+chart0 = alt.Chart(df_sums).mark_bar().encode(
     x = alt.X('risk_factor', sort = 'y'), 
     y = alt.Y('yn'),
     tooltip = 'yn',
@@ -311,11 +339,11 @@ chart0 = alt.Chart(df_rates).mark_bar().encode(
 
 
 ### SUBSET - MMORB RISK ###
-#df_fml2 = df_natality_clean2.groupby([selected_risk, 'outcome', 'yn'], 
-  #  group_keys=False).count().apply(lambda x: x).reset_index()
+df_fml2 = df_rates.groupby([selected_risk, 'outcome', 'yn'], 
+    group_keys=False).count().apply(lambda x: x).reset_index()
 
-##df_fml2['Rate'] = get_rate(df_fml2)
-#df_fml3 = df_fml2[df_fml2['yn'] == 1]
+df_fml2['Rate'] = get_rate(df_fml2)
+df_fml3 = df_fml2[df_fml2['yn'] == 1]
 ### SUBSET - MMORB RISK  ###
 
 
@@ -358,7 +386,7 @@ chart3 = alt.layer(points, line_min, line_max, line_risk, data = df_subset3)
 
 
 ### PLOT - MMORB RISK  ###
-chart2 = alt.Chart(df_rates).mark_bar().encode(
+chart2 = alt.Chart(df_fml3).mark_bar().encode(
     x = alt.X('outcome', sort = 'y'), 
     y = alt.Y('Rate'),
     column = selected_risk, #risk_factor = no_infec
