@@ -153,7 +153,7 @@ month_selection).configure_axis(
 
 # angle the x-axis labels and include full label
 line2 = line.configure_axisBottom(
-    labelAngle = 45,
+    labelAngle = 65,
     labelLimit = 0)
 ### PLOTTING ISABEL ###
 
