@@ -254,14 +254,14 @@ df_bw_risk = df_nat[['mager', 'mar_p', 'dmar',
 
 df_bw_risk_clean = df_bw_risk[df_bw_risk['mar_p'] != 'U']
 
-df_bw_risk_clean['mage_cat'] = np.where(df_bw_risk_clean['mager'] < 17, '<20',
+df_bw_risk_clean.loc[:,'mage_cat'] = np.where(df_bw_risk_clean['mager'] < 17, '<20',
                                np.where(df_bw_risk_clean['mager'] < 26, '20-25',
                                np.where(df_bw_risk_clean['mager'] < 31, '26-30',
                                np.where(df_bw_risk_clean['mager'] < 36, '31-35',
                                np.where(df_bw_risk_clean['mager'] < 41, '36-40',
                                np.where(df_bw_risk_clean['mager'] < 46, '41-45', '46-50'))))))
 
-df_bw_risk_clean['cig_cat'] = np.where(df_bw_risk_clean['cig_0'] == 0, 'none',
+df_bw_risk_clean.loc[:,'cig_cat'] = np.where(df_bw_risk_clean['cig_0'] == 0, 'none',
                                 np.where(df_bw_risk_clean['cig_0'] < 5, '<5',
                                 np.where(df_bw_risk_clean['cig_0'] < 11, '5-10',
                                 np.where(df_bw_risk_clean['cig_0'] < 21, '11-20',
