@@ -8,4 +8,4 @@ Team members:
 - Isabel Smokelin
 - Alice Saparov
 
-Streamlit App here[https://amsaparov-bmi706-project-natalityy-oakzjd.streamlit.app/]
+[Streamlit App](https://amsaparov-bmi706-project-natalityy-oakzjd.streamlit.app/)
