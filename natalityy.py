@@ -94,9 +94,15 @@ mm_chart = alt.hconcat(background + chart_age, background + chart_percent
 
 
 ### PLOTTING ISABEL ###
+# create selector for outcome, add to dropdown
+outcome = morb_group2_isabel['no_mmorb'].unique()
+outcome_dropdown = alt.binding_select(options=outcome)
+outcome_select = alt.selection_single(fields=['no_mmorb'], bind=outcome_dropdown, 
+                                     name= "Maternal Morbidity Outcome", init = {'no_mmorb': outcome[0]})
+
 # set up a sorted bar plot showing cancer deaths in 2019
 plot = alt.Chart(morb_group_isabel).mark_bar().encode(
-    x = alt.X('dob_mm:O', title = 'Month',  sort= ["January", "February", "March", "April" , 
+    x = alt.X('dob_mm', title = 'Month',  sort= ["January", "February", "March", "April" , 
                                                    "May", "June", "July",  "August", 'September', 
                                                    'October', 'November', 'December']),
     y = alt.Y('dob_tt:Q', title = 'Birth Count'),
@@ -118,14 +124,15 @@ plot2 = plot.configure_axisBottom(
     labelAngle = 270,
     labelLimit = 0)
 
+
+# create a selector for month, add to legend
+month_selection = alt.selection_single(fields=['dob_mm'], bind='legend')
+
 # create selector for outcome, add to dropdown
 outcome = morb_group2_isabel['no_mmorb'].unique()
 outcome_dropdown = alt.binding_select(options=outcome)
 outcome_select = alt.selection_single(fields=['no_mmorb'], bind=outcome_dropdown, 
                                      name= "Maternal Morbidity Outcome", init = {'no_mmorb': outcome[0]})
-
-# create a selector for month, add to legend
-month_selection = alt.selection_single(fields=['dob_mm'], bind='legend')
 
 line = alt.Chart(morb_group2_isabel).mark_line(point=True).encode(
   x = alt.X('bins', title = 'Time', sort = ['0:00-1:00', '1:01-2:00', '2:01-3:00', '3:01-4:00', '4:01-5:00',
@@ -134,7 +141,7 @@ line = alt.Chart(morb_group2_isabel).mark_line(point=True).encode(
                          '16:01-17:00', '17:01-18:00', '18:01-19:00', '19:01-20:00', '20:01-21:00',
                          '21:01-22:00', '22:01-23:00', '23:01-24:00']),
   y = alt.Y('dob_tt:Q', title = 'Births'),
-  color = alt.Color('dob_mm:N', title = 'Month', legend = alt.Legend(titleFontSize = 17),
+  color = alt.Color('dob_mm', title = 'Month', legend = alt.Legend(titleFontSize = 17),
                     sort = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
                            'September', 'October', 'November', 'December']),
   opacity=alt.condition(month_selection, alt.value(1), alt.value(0.1)), # add opacity
@@ -256,9 +263,14 @@ with row2_2:
 
 ### PLOTTING ALICE ###
 ## PLOT - RISK SUM ##
-chart0 = alt.Chart(sum_risk_alice).mark_bar(color = '#71797E').encode(
+chart0 = alt.Chart(sum_risk_alice).mark_bar().encode(
     x = alt.X('Risk Factor', sort = 'y'), 
     y = alt.Y('Count'),
+    color = alt.condition(
+        alt.datum['Risk Factor'] == selected_risk,  # If the year is 1810 this test returns True,
+        alt.value('#71797E'),     # which sets the bar orange.
+        alt.value('#D3D3D3')   # And if it's not true it sets the bar steelblue.
+    ),
     tooltip = 'Count').properties(
     width = 360,
     height = 650).configure_axisBottom(
@@ -314,6 +326,13 @@ line_risk = alt.Chart().mark_rule(color = 'firebrick').encode(
 chart3 = alt.layer(points, line_min, line_max, line_risk, data = df_subset3).configure_axis(
     titleFontSize = 20,
     labelFontSize = 15).interactive()
+
+overview_hist = alt.Chart().mark_bar().encode(
+    alt.X('dbwt:Q', bin = True),
+    y = 'count()',
+)
+line_avgbw = alt.Chart(pd.DataFrame({'Mean birthweight': [2500]})).mark_rule(color = 'black').encode(
+    y = 'Lower birthweight', size = alt.SizeValue(3))
 ## PLOT - RISK AVERAGING ##
 
 ## PLOT - MMORB RISK  ##
