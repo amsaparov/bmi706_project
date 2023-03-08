@@ -184,6 +184,7 @@ cigs = bw_risk_alice['cig_cat'].unique()
 ### STREAMLIT THINGIES ###
 ## header ##
 st.write('# 2021 CDC Natality - Maternal Morbidity and Birth Risks')
+st.write('Authors: Fiona McBride, Isabel Smokelin, Alice Saparov')
 st.write('These visualizations use the 2021 Natality Public Use dataset from the Centers \
          for Disease Control and Prevention. This dataset contains information related to \
          all documented births in the United States of America for the year 2021.')
@@ -191,7 +192,8 @@ st.write('These visualizations use the 2021 Natality Public Use dataset from the
 
 ## maps ##
 st.write('## Maternal Morbidity Trends in the United States')
-st.write('short text description')
+st.write('Investigating maternal morbidity trends across different counties. \
+         Select a county to highlight it on both maps. Mouseover to see county specific information.')
 row4_1, row4_2 = st.columns(2)
 with row4_1:
     st.write('### Average Age of Mothers with Maternal Morbidities')
@@ -202,7 +204,10 @@ st.altair_chart(mm_chart)
 
 ## temporal ##
 st.write('## Overview of Births and Maternal Morbidity in 2021')
-st.write('short text description')
+st.write('A broad overview of maternal morbidity counts in 2021 and births per hour for each month. \
+         Mouseover bars on the left to see specific month counts. \
+         Select months from the legend to highlight them in the right plot, \
+         and can also filter the maternal morbidity outcome.')
 row3_1, row3_2 = st.columns([1,2])
 with row3_1:
     st.write('### USA Maternal Morbidity in 2021')
@@ -212,7 +217,10 @@ with row3_2:
 
 ## risk factors ##
 st.write('## Maternal Morbidity Risk Factors')
-st.write('short text description')
+st.write('Investigate how risk factors affect maternal morbidity. \
+         Mouseover on the left plot bars enables specifc counts per risk to be seen. \
+         Select specifc risks on the right to see maternal outcome rates (mouseover enabled for rate).\
+         Legend selection is also available to highlight a chosen outcome.')
 row1_1, row1_2 = st.columns([1,1.8])
 with row1_1:
     st.write('### Count of Maternal Morbidity')
@@ -226,7 +234,11 @@ with row1_2:
 
 ## birthweight ##
 st.write('## Risk Factor Effects on Birthweight')
-st.write('short text description')
+st.write('Investigate specific risk factors on birthweight (g) by selecting any \
+         number of risk factors on the left. Black bars in the plot correspond \
+         to the range of a normal birthweight. The red line indicates the average of \
+         the points shown. Mouseover is available to view details regarding specific points. \
+         Scroll within the plot to zoom in and out over the range of birthweights.')
 row2_1, row2_2 = st.columns([1,2.5])
 with row2_1:
     st.write('### Select Risk Factors')
