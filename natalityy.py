@@ -267,10 +267,9 @@ chart0 = alt.Chart(sum_risk_alice).mark_bar().encode(
     x = alt.X('Risk Factor', sort = 'y'), 
     y = alt.Y('Count'),
     color = alt.condition(
-        alt.datum['Risk Factor'] == selected_risk,  # If the year is 1810 this test returns True,
-        alt.value('#71797E'),     # which sets the bar orange.
-        alt.value('#D3D3D3')   # And if it's not true it sets the bar steelblue.
-    ),
+        alt.datum['Risk Factor'] == selected_risk, 
+        alt.value('#71797E'), 
+        alt.value('#D3D3D3')),
     tooltip = 'Count').properties(
     width = 360,
     height = 650).configure_axisBottom(
